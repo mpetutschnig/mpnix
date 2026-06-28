@@ -69,44 +69,26 @@ services.openssh = {
 };
 networking.firewall.allowedTCPPorts = [ 22 ];
 
-  # --- WLAN Secret laden ---
-  sops.secrets.wireless_env = {};
+# 1. Secret bekannt machen
+sops.secrets.wifi_pw_home = {}; 
 
-  # --- Deklaratives WLAN Profil ---
-  networking.networkmanager.ensureProfiles.environmentFiles = [
-    config.sops.secrets.wireless_env.path
-  ];
-  networking.networkmanager.ensureProfiles.profiles = {
-    "wifi-msml-5g" = {
-      connection = {
-        id = "wifi-msml-5g";
-        type = "wifi";
-      };
-      wifi = {
-        ssid = "wifi-msml-5g";
-      };
-      "wifi-security" = {
-        key-mgmt = "wpa-psk";
-        psk = "$WIFI_PW_HOME";
-      };
+# 2. In die Profile einbinden
+networking.networkmanager.ensureProfiles.profiles = {
+  "wifi-msml-5g" = {
+    connection = {
+      id = "wifi-msml-5g";
+      type = "wifi";
     };
-
-    "wifi-msml" = {
-      connection = {
-        id = "wifi-msml-5g";
-        type = "wifi";
-      };
-      wifi = {
-        ssid = "wifi-msml-5g";
-      };
-      "wifi-security" = {
-        key-mgmt = "wpa-psk";
-        psk = "$WIFI_PW_HOME";
-      };
+    wifi = {
+      ssid = "wifi-msml-5g";
     };
-
-    
+    wifi-security = {
+      key-mgmt = "wpa-psk";
+      # Hier greifen wir direkt auf das entschlüsselte Secret zu
+      psk = config.sops.placeholder.wifi_pw_home;
+    };
   };
+};
 
 
 
