@@ -1,0 +1,17 @@
+creation_rules:
+  - path_regex: secrets/.*\.yaml$
+    key_groups:
+    - age:
+      - "age1pxhqv4yh74t8hs24sm70tjcx53zatryrh7624qkxr5mm2cfdjs6q0qgl9f"
+      - "age18z7pxyp7ru9m4csj3xu5n9s754g4fu20v64w6eq8fhngkq6l5qvs4vs5dn"
+      - "age1a3dzhnp7k03s6g8fts4kljf239g908rx6saw06ypxz6yn39ylqxq23ajk9"
+      - "age1gt0hec88q7yhydmhrn2dpxu6vfsj5jc4nqehfajv2vxj855jears4twrcm"
+      - "age1ww7j5h03xkyl8cz3z9zf93d7ucal2zynugwhflgyqrh0wulykdaq8u4z9a"
+      - "age1uefmlc9qu8kgtyut3xpznwx0mca7czumwmehe9t6yew44hq2sfqshdsz4a"
+      - "age1v4ts2r0jpsdplym56w9w2kzg6z72v6r82zh67n886wwfz68yu3lqc5qyzp"
+      - "age17500euhd28t4ezv6mvz9fekdktztscdg8v8anumrn44sz736t5eqnn5c5a"
+      - "age1p595aryf4dc067tyl44a3erk3yw6dq6nhnuaa37aqnngg9eg4ygq0ctyrr"
+      - "age1g25uvxs39awg67htqlxr233d4cur44kyrekupn9cna70zhq5y33qye64k8"
+      - "age12d0knqg36agnnkvqf8h7d9nxkatxx99euw4up2faxgv5elx62yxsz6tqxc"
+      - "age1sm3xec96zxnxgs9hnm4ceyt7m2f5z67nq25l9jatf444fxwdheyskthztp"
+      - "age18u66qmfje5sc6xvpqyrnm4hjm8q0zhxd4py5gmj3lhg5g20nzqssz96h67"
