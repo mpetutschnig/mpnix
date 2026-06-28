@@ -1,15 +1,16 @@
 { config, pkgs, inputs, ... }:
 
 {
-  # --- Bootloader ---
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  # System-Locale auf Österreich Zwingt NixOS, das klassische Bash-Skript für den Rollback zu 
+  # akzeptieren
+  i18n.defaultLocale = "de_AT.UTF-8"; boot.initrd.systemd.enable = false;
   
-  # --- Erase-Your-Darling (Btrfs Rollback Script) ---
-  # Setzt das Root-Subvolume (@) bei jedem Boot auf den leeren Snapshot (@-blank) zurück.
+  boot.loader.systemd-boot.enable = true; boot.loader.efi.canTouchEfiVariables = true;
+
+  console.keyMap = "de"; 
+
   boot.initrd.postDeviceCommands = pkgs.lib.mkAfter ''
     mkdir -p /mnt
-    # Mountet die Btrfs-Partition (wird bei der Installation /dev/sdb2 sein)
     mount -o subvol=/ /dev/sdb2 /mnt
     
     echo "Lösche altes Root-Subvolume..."
@@ -37,6 +38,8 @@
     extraGroups = [ "wheel" "networkmanager" "video" "audio" ];
     hashedPasswordFile = config.sops.secrets.mp_password.path;
   };
+  # Erlaube proprietäre Software (wie VS Code)
+  nixpkgs.config.allowUnfree = true;
 
   # --- Basis-Pakete & Container ---
   environment.systemPackages = with pkgs; [
@@ -59,6 +62,12 @@
     alsa.enable = true;
     pulse.enable = true;
   };
+
+services.openssh = {
+  enable = true;
+  settings.PasswordAuthentication = true;
+};
+networking.firewall.allowedTCPPorts = [ 22 ];
 
   # --- WLAN Secret laden ---
   sops.secrets.wireless_env = {};
