@@ -60,6 +60,47 @@
     pulse.enable = true;
   };
 
+  # --- WLAN Secret laden ---
+  sops.secrets.wireless_env = {};
+
+  # --- Deklaratives WLAN Profil ---
+  networking.networkmanager.ensureProfiles.environmentFiles = [
+    config.sops.secrets.wireless_env.path
+  ];
+  networking.networkmanager.ensureProfiles.profiles = {
+    "wifi-msml-5g" = {
+      connection = {
+        id = "wifi-msml-5g";
+        type = "wifi";
+      };
+      wifi = {
+        ssid = "wifi-msml-5g";
+      };
+      "wifi-security" = {
+        key-mgmt = "wpa-psk";
+        psk = "$WIFI_PW_HOME";
+      };
+    };
+
+    "wifi-msml" = {
+      connection = {
+        id = "wifi-msml-5g";
+        type = "wifi";
+      };
+      wifi = {
+        ssid = "wifi-msml-5g";
+      };
+      "wifi-security" = {
+        key-mgmt = "wpa-psk";
+        psk = "$WIFI_PW_HOME";
+      };
+    };
+
+    
+  };
+
+
+
   networking.hostName = "mpnix";
   networking.networkmanager.enable = true;
 

@@ -63,6 +63,57 @@
   networking.hostName = "laptop";
   networking.networkmanager.enable = true;
 
+  programs.vscode = {
+    enable = true;
+    
+    
+
+    extensions = with pkgs.vscode-extensions; [
+      jnoortheen.nix-ide
+      #ms-python.python           # Für Machine Learning / Python Scripts
+      #dbaeumer.vscode-eslint     # Für JavaScript/Fastify
+      #fwcd.kotlin                # Für Kotlin
+      
+      # KI-Assistenten (je nachdem, welchen du für Claude/Gemini nutzt)
+      # z.B. continue.continue oder github.copilot
+    ]++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+      # 2. Erweiterungen direkt aus dem VS Code Marketplace
+      {
+        name = "claude-code";
+        publisher = "anthropic";
+        version = "2.1.195";
+        sha256 = "0000000000000000000000000000000000000000000000000000";
+      }
+      {
+        name = "markdown-runner";
+        publisher = "renathossain";
+        version = "3.3.0";
+        sha256 = "0000000000000000000000000000000000000000000000000000";
+      }
+      {
+        name = "pdf";
+        publisher = "tomoki1207";
+        version = "1.2.2";
+        sha256 = "0000000000000000000000000000000000000000000000000000";
+      }
+      {
+        name = "vscode-httpyac";
+        publisher = "anweber";
+        version = "6.16.7";
+        sha256 = "0000000000000000000000000000000000000000000000000000";
+      }
+    ];
+
+    # 3. Deine settings.json direkt in Nix integriert
+    userSettings = {
+      "editor.formatOnSave" = true;
+      "nix.enableLanguageServer" = true;
+      "nix.serverPath" = "nixd";
+      "telemetry.telemetryLevel" = "off";
+    };
+  };
+
+
   # State Version (NICHT ÄNDERN!)
   system.stateVersion = "24.05";
 }
