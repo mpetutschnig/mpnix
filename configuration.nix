@@ -1,6 +1,10 @@
 { config, pkgs, inputs, ... }:
 
 {
+imports = [
+  ./hardware-configuration.nix
+  ./modules/desktop.nix  # <--- Hinzufügen
+];
   # System-Locale auf Österreich Zwingt NixOS, das klassische Bash-Skript für den Rollback zu 
   # akzeptieren
   i18n.defaultLocale = "de_AT.UTF-8"; boot.initrd.systemd.enable = false;
