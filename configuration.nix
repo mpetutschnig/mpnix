@@ -74,7 +74,7 @@ services.openssh = {
 networking.firewall.allowedTCPPorts = [ 22 ];
 
 # 1. Secret bekannt machen
-sops.secrets.wifi_pw_home = {}; 
+sops.secrets.wireless_env = {}; 
 
 # 2. In die Profile einbinden
 networking.networkmanager.ensureProfiles.profiles = {
