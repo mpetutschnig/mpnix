@@ -11,7 +11,7 @@
 
   home.packages = with pkgs; [ foot waybar fuzzel ];
 
-  programs.vscode = {
+  programs.vscode.profiles.default = {
     enable = true;
     extensions = with pkgs.vscode-extensions; [
       jnoortheen.nix-ide
