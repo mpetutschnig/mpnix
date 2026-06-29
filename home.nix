@@ -80,15 +80,6 @@ bind = [
       ", XF86MonBrightnessDown, exec, brightnessctl s 5%-"
     ];
 
-    # --- Workflow Spezial (NixOS / Configs) ---
-    # Schneller Zugriff auf dein Git-Repo
-    bind = [
-      "$mod, F1, exec, alacritty -e hx /mnt/files/git/mpnix/flake.nix"
-      
-      # Screenshot für Fotografie-Workflow
-      "$mod SHIFT, S, exec, grim -g \"$(slurp)\" ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%m-%s).png"
-    ];
-
     # --- Maus-Binds ---
     bindm = [
       "$mod, mouse:272, movewindow"
