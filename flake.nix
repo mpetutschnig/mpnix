@@ -9,14 +9,18 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    hyprland.url = "github:hyprwm/Hyprland";
+
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, ... }@inputs: {
-    nixosConfigurations.laptop = nixpkgs.lib.nixosSystem {
+  outputs = { self, nixpkgs, home-manager, sops-nix, hyprland, ... }
+  
+  @inputs: {
+    nixosConfigurations.mpnix = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; };
       modules = [
