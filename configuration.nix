@@ -32,6 +32,10 @@
     neededForUsers = true;
   };
 
+sops.secrets.wireless_env = {
+  sopsFile = ./secrets/secrets.yaml; # oder dein Pfad
+};
+
   # --- User 'mp' ---
   users.users.mp = {
     isNormalUser = true;
@@ -85,7 +89,7 @@ networking.networkmanager.ensureProfiles.profiles = {
     wifi-security = {
       key-mgmt = "wpa-psk";
       # Hier greifen wir direkt auf das entschlüsselte Secret zu
-      psk = config.sops.placeholder.wireless_env;
+      psk = config.sops.secrets.wireless_env.path;
     };
   };
 };
