@@ -43,5 +43,59 @@
     ];
   };
 
+wayland.windowManager.hyprland = {
+    enable = true;
+    settings = {
+      "$mod" = "SUPER"; # Windows-Taste als Modifikator
+
+      # Beispiel Keybinds
+bind = [
+      "$mod, RETURN, exec, alacritty"
+      "$mod, E,      exec, alacritty -e hx"                # Helix direkt öffnen
+      "$mod, D,      exec, wofi --show drun"               # App-Launcher
+      "$mod, Q,      killactive,"
+      "$mod, M,      exit,"
+      "$mod, F,      togglefloating,"
+      "$mod, P,      pseudo, # dwindle"
+      "$mod, J,      togglesplit, # dwindle"
+    ];
+
+    # --- Workspace Navigation ---
+    # Binds für 1-9
+    binde = [
+      "$mod, 1, workspace, 1"
+      "$mod, 2, workspace, 2"
+      "$mod, 3, workspace, 3"
+      "$mod, 4, workspace, 4"
+      "$mod, 5, workspace, 5"
+      "$mod, SHIFT, 1, movetoworkspace, 1"
+      "$mod, SHIFT, 2, movetoworkspace, 2"
+    ];
+
+    # --- System & Hardware (Tuxedo/Audio) ---
+    bindel = [
+      ", XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
+      ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+      ", XF86MonBrightnessUp,  exec, brightnessctl s +5%"
+      ", XF86MonBrightnessDown, exec, brightnessctl s 5%-"
+    ];
+
+    # --- Workflow Spezial (NixOS / Configs) ---
+    # Schneller Zugriff auf dein Git-Repo
+    bind = [
+      "$mod, F1, exec, alacritty -e hx /mnt/files/git/mpnix/flake.nix"
+      
+      # Screenshot für Fotografie-Workflow
+      "$mod SHIFT, S, exec, grim -g \"$(slurp)\" ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%m-%s).png"
+    ];
+
+    # --- Maus-Binds ---
+    bindm = [
+      "$mod, mouse:272, movewindow"
+      "$mod, mouse:273, resizewindow"
+    ];
+    };
+  };
+
   home.stateVersion = "24.05";
 }
