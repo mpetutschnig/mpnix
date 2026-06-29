@@ -85,7 +85,7 @@ networking.networkmanager.ensureProfiles.profiles = {
     wifi-security = {
       key-mgmt = "wpa-psk";
       # Hier greifen wir direkt auf das entschlüsselte Secret zu
-      psk = config.sops.placeholder.wifi_pw_home;
+      psk = config.sops.placeholder.wireless_env;
     };
   };
 };
