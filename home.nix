@@ -45,7 +45,6 @@
 
 wayland.windowManager.hyprland = {
     enable = true;
-    configType = "lua";
     settings = {
       "$mod" = "SUPER"; # Windows-Taste als Modifikator
 

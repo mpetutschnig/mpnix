@@ -1,4 +1,7 @@
-# 1. Hyprland mit UWSM aktivieren
+{ pkgs, inputs, ... }:
+
+{
+  # 1. Hyprland mit UWSM aktivieren
   programs.hyprland = {
     enable = true;
     withUWSM = true;
@@ -27,3 +30,4 @@
     enable = true;
     enable32Bit = true;
   };
+}
