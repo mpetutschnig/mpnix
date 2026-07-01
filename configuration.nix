@@ -11,7 +11,7 @@ imports = [
   
   boot.loader.systemd-boot.enable = true; boot.loader.efi.canTouchEfiVariables = true;
 
-  console.keyMap = "de"; 
+  console.useXkbConfig = true; # TTY-Layout aus services.xserver.xkb übernehmen (statt separatem console.keyMap)
 
   boot.initrd.postDeviceCommands = pkgs.lib.mkAfter ''
     mkdir -p /mnt

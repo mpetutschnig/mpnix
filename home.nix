@@ -16,12 +16,12 @@
     wofi # nur für die Clipboard-Historie (cliphist)
     yazi
     obsidian
-    hyprpicker
-    hyprlock
-    hypridle
-    hyprpaper
-    hyprshot
-    hyprkeys # ersetzt hyprbind (nicht in nixpkgs verfügbar)
+    swaylock # Lockscreen (ersetzt hyprlock, Hyprland-spezifisch)
+    swayidle # Idle-Daemon (ersetzt hypridle)
+    swaybg # Wallpaper (ersetzt hyprpaper, Hyprland-spezifisch)
+    grim
+    slurp
+    imagemagick # für den Color-Picker (grim+slurp+convert), ersetzt hyprpicker
     mako
     cliphist
     wl-clipboard
@@ -30,7 +30,6 @@
     btop
     fish
     chromium
-    polkit_gnome
   ];
 
   programs.vscode.profiles.default = {
@@ -65,115 +64,141 @@
     ];
   };
 
-  wayland.windowManager.hyprland = {
-    enable = true;
-    configType = "lua";
+  # niri wird über niri.nixosModules.niri (modules/desktop.nix) installiert;
+  # das home-manager-Modul (programs.niri.settings) wird dadurch automatisch
+  # importiert. Typisiertes Nix statt rohem KDL/Lua - wird beim Build validiert.
+  #
+  # Hinweise zu Abweichungen von deinem Hyprland-Referenz-Repo
+  # (https://github.com/mpetutschnig/arch_hyperland_tui):
+  # - niris Tiling ist scrollbares Spalten-Layout, kein dwindle/floating-Mix;
+  #   Maus-Move/Resize-Binds (mouse:272/273) entfallen daher (Spalten werden
+  #   per move-column-*/consume/expel neu angeordnet, floating Fenster per CSD gezogen).
+  # - Alt+Tab ist bereits ein niri-Bordmittel (recent-windows), kein eigener Bind nötig.
+  # - togglespecialworkspace (Mod+S) hat keine 1:1-Entsprechung in niri, weggelassen.
+  # - niris eigenes "Overview"-Feature (Mod+O) wurde zugunsten von Obsidian (dein Mod+O) geopfert.
+  programs.niri.settings = {
+    environment = {
+      XCURSOR_SIZE = "24";
+      QT_QPA_PLATFORM = "wayland;xcb";
+      QT_QPA_PLATFORMTHEME = "qt6ct";
+      QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+      QT_STYLE_OVERRIDE = "kvantum";
+      GDK_BACKEND = "wayland,x11,*";
+      SDL_VIDEODRIVER = "wayland";
+      CLUTTER_BACKEND = "wayland";
+      NIXOS_OZONE_WL = "1"; # Electron-Apps (vscode etc.) auf Wayland
+    };
 
-    # settings/bind-Listen sind für configType="lua" nicht zuverlässig unterstützt
-    # (nix-community/home-manager#9468, "not planned") -> komplette Config als
-    # rohes Lua über Hyprlands eigene Lua-API (hl.*), analog zu
-    # https://github.com/mpetutschnig/arch_hyperland_tui/blob/main/dot_config/hypr/{var,binds}.conf
-    extraConfig = ''
-      local mainMod = "SUPER"
-      local terminal = "foot"
+    spawn-at-startup = [
+      { argv = [ "waybar" ]; }
+      { argv = [ "mako" ]; }
+      { argv = [ "vicinae" "server" ]; }
+      { argv = [ "swaybg" "--mode" "fill" "--color" "#1e1e2e" ]; } # kein Bild hinterlegt, siehe Hinweis unten
+      { sh = "wl-paste --type text --watch cliphist store"; }
+      { sh = "wl-paste --type image --watch cliphist store"; }
+      { sh = "swayidle -w timeout 300 'swaylock -f' before-sleep 'swaylock -f'"; }
+    ];
 
-      -----------------------------
-      -- Environment
-      -----------------------------
-      hl.env("XCURSOR_SIZE", "24")
-      hl.env("HYPRCURSOR_SIZE", "24")
-      hl.env("QT_QPA_PLATFORM", "wayland;xcb")
-      hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
-      hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
-      hl.env("QT_AUTO_SCREEN_SCALE_FACTOR", "1")
-      hl.env("QT_STYLE_OVERRIDE", "kvantum")
-      hl.env("GDK_BACKEND", "wayland,x11,*")
-      hl.env("SDL_VIDEODRIVER", "wayland")
-      hl.env("CLUTTER_BACKEND", "wayland")
-      hl.env("XDG_CURRENT_DESKTOP", "Hyprland")
-      hl.env("XDG_SESSION_TYPE", "wayland")
-      hl.env("XDG_SESSION_DESKTOP", "Hyprland")
+    binds = {
+      "Mod+Shift+Slash".action.show-hotkey-overlay = [ ];
 
-      -----------------------------
-      -- Autostart
-      -----------------------------
-      hl.on("hyprland.start", function()
-        hl.exec_cmd("waybar")
-        hl.exec_cmd("hyprpaper") -- Hinweis: hyprpaper.conf/Wallpaper wurde nicht übernommen (Pfad im Referenz-Repo existiert nicht)
-        hl.exec_cmd("vicinae server")
-        hl.exec_cmd("hypridle")
-        hl.exec_cmd("mako")
-        hl.exec_cmd("${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1")
-        hl.exec_cmd("wl-paste --type text --watch cliphist store")
-        hl.exec_cmd("wl-paste --type image --watch cliphist store")
-      end)
+      # --- Programme ---
+      "Mod+Return".action.spawn = "foot";
+      "Mod+T".action.spawn = "foot";
+      "Mod+E".action.spawn = [ "foot" "-e" "yazi" ];
+      "Mod+O".action.spawn = "obsidian";
+      "Mod+D".action.spawn = [ "vicinae" "toggle" ];
+      "Mod+Space".action.spawn = [ "vicinae" "toggle" ];
+      "Mod+W".action.spawn = "chromium";
+      "Mod+L".action.spawn = "swaylock";
+      "Mod+V".action.spawn-sh = "cliphist list | wofi --dmenu | cliphist decode | wl-copy";
+      "Mod+P".action.spawn-sh =
+        ''grim -g "$(slurp -p)" -t ppm - | convert - -format '%[pixel:p{0,0}]' txt:- | tail -n1 | grep -oP '#[0-9A-Fa-f]{6}' | wl-copy'';
+      "Ctrl+Shift+Escape".action.spawn = [ "foot" "--app-id" "tuibtop" "fish" "-c" "btop" ];
 
-      -----------------------------
-      -- Keybinds: Basis
-      -----------------------------
-      hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
-      hl.bind(mainMod .. " + E",      hl.dsp.exec_cmd(terminal .. " -e yazi"))
-      hl.bind(mainMod .. " + O",      hl.dsp.exec_cmd("obsidian"))
-      hl.bind(mainMod .. " + Q",      hl.dsp.window.close())
-      hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("uwsm stop")) -- statt "exit": sauberes Beenden unter UWSM
-      hl.bind(mainMod .. " + D",      hl.dsp.exec_cmd("vicinae toggle"))
-      hl.bind(mainMod .. " + SPACE",  hl.dsp.exec_cmd("vicinae toggle"))
-      hl.bind(mainMod .. " + W",      hl.dsp.exec_cmd("chromium"))
-      hl.bind(mainMod .. " + L",      hl.dsp.exec_cmd("hyprlock --grace 5"))
-      hl.bind(mainMod .. " + P",      hl.dsp.exec_cmd("hyprpicker | wl-copy"))
-      hl.bind(mainMod .. " + V",      hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
-      hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd(terminal .. " -e hyprkeys")) -- ersetzt hyprbind, ggf. Flags anpassen
-      hl.bind("ALT + TAB", hl.dsp.cyclenext())
-      hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd(terminal .. " --app-id tuibtop fish -c btop"))
+      # --- Fenster schließen / beenden ---
+      "Mod+Q".action.close-window = [ ];
+      "Mod+Shift+E".action.quit = [ ];
 
-      -- Fensterzustände (best effort - Lua-API dafür ist kaum dokumentiert)
-      hl.bind(mainMod .. " + F",         hl.dsp.window.fullscreen({ mode = 1 })) -- maximize
-      hl.bind(mainMod .. " + CTRL + F",  hl.dsp.window.fullscreen({ mode = 0 })) -- echter Fullscreen
-      hl.bind(mainMod .. " + SHIFT + F", hl.dsp.window.float({ action = "toggle" }))
+      # --- Fokus zwischen Fenstern/Spalten ---
+      "Mod+Left".action.focus-column-left = [ ];
+      "Mod+Down".action.focus-window-down = [ ];
+      "Mod+Up".action.focus-window-up = [ ];
+      "Mod+Right".action.focus-column-right = [ ];
+      "Mod+H".action.focus-column-left = [ ];
+      "Mod+J".action.focus-window-down = [ ];
+      "Mod+K".action.focus-window-up = [ ];
+      # kein Mod+L für focus-column-right: L ist per Referenz-Repo an swaylock gebunden,
+      # Mod+Right deckt dieselbe Aktion ab
 
-      -----------------------------
-      -- Workspaces
-      -----------------------------
-      for i = 1, 9 do
-        hl.bind(mainMod .. " + " .. i, hl.dsp.focus({ workspace = i }))
-        hl.bind(mainMod .. " + SHIFT + " .. i, hl.dsp.window.move({ workspace = i }))
-      end
-      hl.bind(mainMod .. " + 0", hl.dsp.focus({ workspace = 10 }))
-      hl.bind(mainMod .. " + SHIFT + 0", hl.dsp.window.move({ workspace = 10 }))
-      hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special())
-      hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special" }))
+      # --- Fenster/Spalten verschieben ---
+      "Mod+Ctrl+Left".action.move-column-left = [ ];
+      "Mod+Ctrl+Down".action.move-window-down = [ ];
+      "Mod+Ctrl+Up".action.move-window-up = [ ];
+      "Mod+Ctrl+Right".action.move-column-right = [ ];
 
-      -- Workspace-Scroll (best effort)
-      hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-      hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+      # --- Spalte einsammeln/auswerfen ---
+      "Mod+BracketLeft".action.consume-or-expel-window-left = [ ];
+      "Mod+BracketRight".action.consume-or-expel-window-right = [ ];
 
-      -----------------------------
-      -- Maus
-      -----------------------------
-      hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
-      hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+      # --- Fensterzustände ---
+      "Mod+F".action.maximize-column = [ ];
+      "Mod+Shift+F".action.fullscreen-window = [ ];
+      "Mod+M".action.maximize-window-to-edges = [ ];
+      "Mod+Shift+V".action.toggle-window-floating = [ ];
 
-      -----------------------------
-      -- Medientasten / Hardware
-      -----------------------------
-      hl.bind("XF86AudioRaiseVolume",   hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
-      hl.bind("XF86AudioLowerVolume",   hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
-      hl.bind("XF86AudioMute",          hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, repeating = true })
-      hl.bind("XF86AudioMicMute",       hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
-      hl.bind("XF86MonBrightnessUp",    hl.dsp.exec_cmd("brightnessctl s +5%"),  { locked = true, repeating = true })
-      hl.bind("XF86MonBrightnessDown",  hl.dsp.exec_cmd("brightnessctl s 5%-"), { locked = true, repeating = true })
-      hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
-      hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-      hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-      hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),  { locked = true })
+      # --- Workspaces (1-9, Fenster statt ganzer Spalte verschieben) ---
+      "Mod+1".action.focus-workspace = 1;
+      "Mod+2".action.focus-workspace = 2;
+      "Mod+3".action.focus-workspace = 3;
+      "Mod+4".action.focus-workspace = 4;
+      "Mod+5".action.focus-workspace = 5;
+      "Mod+6".action.focus-workspace = 6;
+      "Mod+7".action.focus-workspace = 7;
+      "Mod+8".action.focus-workspace = 8;
+      "Mod+9".action.focus-workspace = 9;
+      "Mod+Shift+1".action.move-window-to-workspace = 1;
+      "Mod+Shift+2".action.move-window-to-workspace = 2;
+      "Mod+Shift+3".action.move-window-to-workspace = 3;
+      "Mod+Shift+4".action.move-window-to-workspace = 4;
+      "Mod+Shift+5".action.move-window-to-workspace = 5;
+      "Mod+Shift+6".action.move-window-to-workspace = 6;
+      "Mod+Shift+7".action.move-window-to-workspace = 7;
+      "Mod+Shift+8".action.move-window-to-workspace = 8;
+      "Mod+Shift+9".action.move-window-to-workspace = 9;
 
-      -----------------------------
-      -- Screenshots
-      -----------------------------
-      hl.bind(mainMod .. " + PRINT",        hl.dsp.exec_cmd("hyprshot -m output"))
-      hl.bind(mainMod .. " + CTRL + P",     hl.dsp.exec_cmd("hyprshot -s -z -m region"))
-      hl.bind("PRINT",                      hl.dsp.exec_cmd("hyprshot -m region"))
-    '';
+      "Mod+WheelScrollDown".cooldown-ms = 150;
+      "Mod+WheelScrollDown".action.focus-workspace-down = [ ];
+      "Mod+WheelScrollUp".cooldown-ms = 150;
+      "Mod+WheelScrollUp".action.focus-workspace-up = [ ];
+
+      # --- Medientasten / Hardware (allow-when-locked wie zuvor bindel/bindl) ---
+      "XF86AudioRaiseVolume".allow-when-locked = true;
+      "XF86AudioRaiseVolume".action.spawn = [ "wpctl" "set-volume" "-l" "1" "@DEFAULT_AUDIO_SINK@" "5%+" ];
+      "XF86AudioLowerVolume".allow-when-locked = true;
+      "XF86AudioLowerVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-" ];
+      "XF86AudioMute".allow-when-locked = true;
+      "XF86AudioMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle" ];
+      "XF86AudioMicMute".allow-when-locked = true;
+      "XF86AudioMicMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle" ];
+      "XF86MonBrightnessUp".allow-when-locked = true;
+      "XF86MonBrightnessUp".action.spawn = [ "brightnessctl" "set" "+5%" ];
+      "XF86MonBrightnessDown".allow-when-locked = true;
+      "XF86MonBrightnessDown".action.spawn = [ "brightnessctl" "set" "5%-" ];
+      "XF86AudioNext".allow-when-locked = true;
+      "XF86AudioNext".action.spawn = [ "playerctl" "next" ];
+      "XF86AudioPause".allow-when-locked = true;
+      "XF86AudioPause".action.spawn = [ "playerctl" "play-pause" ];
+      "XF86AudioPlay".allow-when-locked = true;
+      "XF86AudioPlay".action.spawn = [ "playerctl" "play-pause" ];
+      "XF86AudioPrev".allow-when-locked = true;
+      "XF86AudioPrev".action.spawn = [ "playerctl" "previous" ];
+
+      # --- Screenshots (niri-Bordmittel statt hyprshot) ---
+      "Mod+Print".action.screenshot-screen = [ ];
+      "Mod+Ctrl+P".action.screenshot = [ ];
+      "Print".action.screenshot = [ ];
+    };
   };
 
   home.stateVersion = "24.05";
