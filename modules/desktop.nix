@@ -20,10 +20,9 @@
   security.polkit.enable = true;
 
   # 4. XDG Desktop Portal (für Dateidialoge/Screensharing)
-  xdg.portal = {
-    enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-hyprland ];
-  };
+  # programs.hyprland bindet xdg-desktop-portal-hyprland bereits selbst ein
+  # (extraPortals hier führt zu einer doppelten xdg-desktop-portal-hyprland.service)
+  xdg.portal.enable = true;
 
   # 5. Hardware-Beschleunigung (für Video/Browser/Tuxedo)
   hardware.graphics = {
