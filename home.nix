@@ -50,9 +50,9 @@ wayland.windowManager.hyprland = {
 
       # Beispiel Keybinds
 bind = [
-      "$mod, RETURN, exec, alacritty"
-      "$mod, E,      exec, alacritty -e hx"                # Helix direkt öffnen
-      "$mod, D,      exec, wofi --show drun"               # App-Launcher
+      "$mod, RETURN, exec, foot"
+      "$mod, E,      exec, code"                            # VS Code direkt öffnen
+      "$mod, D,      exec, fuzzel"                         # App-Launcher
       "$mod, Q,      killactive,"
       "$mod, M,      exit,"
       "$mod, F,      togglefloating,"
