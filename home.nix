@@ -57,7 +57,7 @@ bind = [
       "$mod, M,      exit,"
       "$mod, F,      togglefloating,"
       "$mod, P,      pseudo, # dwindle"
-      "$mod, J,      togglesplit, # dwindle"
+      "$mod, J,      layoutmsg, togglesplit # dwindle"
     ];
 
     # --- Workspace Navigation ---
